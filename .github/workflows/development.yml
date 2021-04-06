@@ -23,6 +23,7 @@ jobs:
         run: echo "$GITHUB_CONTEXT"
 
   dependency:
+    if: ${{ always() && github.ref == 'refs/heads/main' }}
     runs-on: ["ubuntu-latest"]
 
     outputs:
