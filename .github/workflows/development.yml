@@ -1,0 +1,50 @@
+# Workflow syntax reference:
+# https://docs.github.com/en/free-pro-team@latest/actions/reference/workflow-syntax-for-github-actions
+
+on:
+  pull_request:
+    types:
+      - edited
+      - opened
+      - reopened
+      - synchronize
+
+  push:
+    branches:
+      - main
+
+jobs:
+  context-dump:
+    runs-on: ["ubuntu-latest"]
+    steps:
+      - name: GitHub context
+        env:
+          GITHUB_CONTEXT: ${{ toJSON(github) }}
+        run: echo "$GITHUB_CONTEXT"
+
+  dependency:
+    runs-on: ["ubuntu-latest"]
+
+    outputs:
+      foo: ${{ steps.output.outputs.foo }}
+      bar: ${{ steps.output.outputs.bar }}
+
+    steps:
+      - id: output
+        run: |
+          echo "::set-output name=foo::\"[]\""
+          echo "::set-output name=bar::\"[\"test\"]\""
+
+      - run: |
+          echo "foo: ${{ steps.output.outputs.foo }}"
+          echo "bar: ${{ steps.output.outputs.bar }}"
+
+  doit:
+    if: ${{ needs.dependency.outputs.foo != '[]' || needs.dependency.outputs.bar != '[]' }}
+    needs: [dependency]
+    runs-on: ["ubuntu-latest"]
+
+    steps:
+      - run: |
+          echo "foo: ${{ needs.dependency.outputs.foo }}"
+          echo "bar: ${{ needs.dependency.outputs.bar }}"
